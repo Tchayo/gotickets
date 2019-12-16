@@ -13,18 +13,18 @@ import (
 type Ticket struct {
 	gorm.Model
 	TicketID      string  `gorm:"type:varchar(100);unique_index" json:"ticket_id"`
-	PriorityID    int64   `json:"priority_id"`
-	StatusID      int64   `json:"status_id"`
-	CategoryID    int64   `json:"category_id"`
-	SubCategoryID int64   `json:"sub_category_id"`
+	PriorityID    int32   `json:"priority_id"`
+	StatusID      int32   `json:"status_id"`
+	CategoryID    int32   `json:"category_id"`
+	SubCategoryID int32   `json:"sub_category_id"`
 	Author        User    `json:"author"`
-	UserID        int64   `json:"user_id"`
+	UserID        uint32  `json:"user_id"`
 	Holder        User    `json:"holder"`
-	HolderID      int64   `json:"holder_id"`
+	HolderID      uint32  `json:"holder_id"`
 	Closer        User    `json:"closer"`
-	CloserID      int64   `json:"closer_id"`
+	CloserID      uint32  `json:"closer_id"`
 	Assignee      User    `json:"assignee"`
-	AssigneeID    int64   `json:"assignee_id"`
+	AssigneeID    uint32  `json:"assignee_id"`
 	ContactNo     string  `json:"contact_no"`
 	Title         string  `json:"title"`
 	Message       string  `json:"message"`
