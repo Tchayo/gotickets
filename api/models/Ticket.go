@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"html"
+	"os"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -37,7 +38,7 @@ type Ticket struct {
 
 func HashTID(tid uint) string {
 	hd := hashids.NewData()
-	hd.Salt = "mySaltO"
+	hd.Salt = os.Getenv("SALT")
 	hd.MinLength = 6
 	h, _ := hashids.NewWithData(hd)
 	e, _ := h.Encode([]int{int(tid)})
