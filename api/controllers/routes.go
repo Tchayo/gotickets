@@ -18,9 +18,16 @@ func (s *Server) initializeRoutes() {
 	s.Router.HandleFunc("/users/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteUser)).Methods("DELETE")
 
 	//Tickets routes
-	s.Router.HandleFunc("/tickets", middlewares.SetMiddlewareJSON(s.CreateTicket)).Methods("POST")
-	s.Router.HandleFunc("/tickets", middlewares.SetMiddlewareJSON(s.GetTickets)).Methods("GET")
+	s.Router.HandleFunc("/tickets", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.CreateTicket))).Methods("POST")
+	s.Router.HandleFunc("/tickets", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetTickets))).Methods("GET")
 	s.Router.HandleFunc("/tickets/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetTicket))).Methods("GET")
 	s.Router.HandleFunc("/tickets/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateTicket))).Methods("PUT")
+
+	//Teams routes
+	s.Router.HandleFunc("/teams", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.CreateTeam))).Methods("POST")
+	s.Router.HandleFunc("/teams", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetTeams))).Methods("GET")
+	s.Router.HandleFunc("/teams/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetTeam))).Methods("GET")
+	s.Router.HandleFunc("/teams/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateTeam))).Methods("PUT")
+	s.Router.HandleFunc("/teams/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteTeam)).Methods("DELETE")
 
 }

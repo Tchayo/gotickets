@@ -32,7 +32,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 			fmt.Printf("Cannot connect to %s database", Dbdriver)
 			log.Fatal("This is the error:", err)
 		} else {
-			fmt.Printf("We are connected to the %s database", Dbdriver)
+			fmt.Printf("We are connected to the %s database\n", Dbdriver)
 		}
 	}
 
@@ -40,14 +40,14 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
 		server.DB, err = gorm.Open(Dbdriver, DBURL)
 		if err != nil {
-			fmt.Printf("Cannot connect to %s database", Dbdriver)
+			fmt.Printf("Cannot connect to %s database\n", Dbdriver)
 			log.Fatal("This is the error:", err)
 		} else {
-			fmt.Printf("We are connected to the %s database", Dbdriver)
+			fmt.Printf("We are connected to the %s database\n", Dbdriver)
 		}
 	}
 
-	server.DB.Debug().AutoMigrate(&models.User{}, &models.Ticket{}) //database migration
+	server.DB.Debug().AutoMigrate(&models.User{}, &models.Ticket{}, &models.Team{}) //database migration
 
 	server.Router = mux.NewRouter()
 

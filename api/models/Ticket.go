@@ -2,10 +2,12 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"html"
 	"os"
 	"strings"
 
+	"github.com/dongri/phonenumber"
 	"github.com/jinzhu/gorm"
 	"github.com/speps/go-hashids"
 )
@@ -13,7 +15,7 @@ import (
 // Ticket : description
 type Ticket struct {
 	gorm.Model
-	TicketID      string  `gorm:"type:varchar(100);unique_index" json:"ticket_id"`
+	TicketID      string  `gorm:"type:varchar(100)" json:"ticket_id"`
 	PriorityID    int32   `json:"priority_id"`
 	StatusID      int32   `json:"status_id"`
 	CategoryID    int32   `json:"category_id"`
@@ -51,8 +53,8 @@ func HashTID(tid uint) string {
 // Prepare : description
 func (t *Ticket) Prepare() {
 
-	if t.TicketID == "" {
-		t.TicketID = HashTID(t.ID)
+	if t.ContactNo != "" {
+		t.ContactNo = phonenumber.Parse(t.ContactNo, "KE")
 	}
 	t.Title = html.EscapeString(strings.TrimSpace(t.Title))
 	t.Message = html.EscapeString(strings.TrimSpace(t.Message))
@@ -79,13 +81,22 @@ func (t *Ticket) Validate() error {
 
 // SaveTicket : description
 func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
-	var err error
+	var err, uperr error
 	err = db.Debug().Model(&Ticket{}).Create(&t).Error
 	if err != nil {
 		return &Ticket{}, err
 	}
 	if t.ID != 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", t.UserID).Take(&t.Author).Error
+		if t.TicketID == "" {
+			newHash := HashTID(t.ID)
+			uperr = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{TicketID: newHash}).Error
+
+			if uperr != nil {
+				fmt.Println(uperr)
+			}
+		}
+
+		err = db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", t.UserID).Take(&t.Author).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
@@ -144,6 +155,7 @@ func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 	if err != nil {
 		return &Ticket{}, err
 	}
+
 	if t.CloserID != 0 {
 		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Closer).Error
 		if err != nil {

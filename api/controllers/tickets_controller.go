@@ -118,7 +118,7 @@ func (server *Server) UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	ticket := models.Ticket{}
 	err = server.DB.Debug().Model(models.Ticket{}).Where("id = ?", tid).Take(&ticket).Error
 	if err != nil {
-		responses.ERROR(w, http.StatusNotFound, errors.New("Post not found"))
+		responses.ERROR(w, http.StatusNotFound, errors.New("Ticket not found"))
 		return
 	}
 
