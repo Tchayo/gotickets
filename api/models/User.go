@@ -13,6 +13,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// User : description
 type User struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	Email     string    `gorm:"size:140;not null;unique" json:"email"`
@@ -21,14 +22,17 @@ type User struct {
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
+// Hash : description
 func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
+// VerifyPassword : description
 func VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
+// BeforeSave : description
 func (u *User) BeforeSave() error {
 	hashedPassword, err := Hash(u.Password)
 	if err != nil {
@@ -38,6 +42,7 @@ func (u *User) BeforeSave() error {
 	return nil
 }
 
+// Prepare : description
 func (u *User) Prepare() {
 	u.ID = 0
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
@@ -45,6 +50,7 @@ func (u *User) Prepare() {
 	u.UpdatedAt = time.Now()
 }
 
+// Validate : description
 func (u *User) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "update":
@@ -87,6 +93,7 @@ func (u *User) Validate(action string) error {
 
 }
 
+// SaveUser : description
 func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 
 	var err error
@@ -97,6 +104,7 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 	return u, nil
 }
 
+// FindAllUsers : description
 func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 	var err error
 	users := []User{}
@@ -107,6 +115,7 @@ func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 	return &users, err
 }
 
+// FindUserByID : description
 func (u *User) FindUserByID(db *gorm.DB, uid uint32) (*User, error) {
 	var err error
 	err = db.Debug().Model(User{}).Select("id, Email, created_at, updated_at").Where("id = ?", uid).Take(&u).Error
@@ -120,6 +129,7 @@ func (u *User) FindUserByID(db *gorm.DB, uid uint32) (*User, error) {
 
 }
 
+// UpdateAUser : description
 func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 
 	// To hash pass
@@ -146,6 +156,7 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	return u, nil
 }
 
+// DeleteAUser : description
 func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})

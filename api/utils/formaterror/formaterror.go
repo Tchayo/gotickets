@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// FormatError : description
 func FormatError(err string) error {
 	if strings.Contains(err, "email") {
 		return errors.New("Email Already Taken")

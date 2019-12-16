@@ -10,6 +10,7 @@ import (
 	"github.com/speps/go-hashids"
 )
 
+// Ticket : description
 type Ticket struct {
 	gorm.Model
 	TicketID      string  `gorm:"type:varchar(100);unique_index" json:"ticket_id"`
@@ -36,6 +37,7 @@ type Ticket struct {
 	Resolved      bool    `gorm:"default:false" json:"resolved"`
 }
 
+// HashTID : description
 func HashTID(tid uint) string {
 	hd := hashids.NewData()
 	hd.Salt = os.Getenv("SALT")
@@ -46,6 +48,7 @@ func HashTID(tid uint) string {
 	return e
 }
 
+// Prepare : description
 func (t *Ticket) Prepare() {
 
 	if t.TicketID == "" {
@@ -56,6 +59,7 @@ func (t *Ticket) Prepare() {
 	t.Author = User{}
 }
 
+// Validate : description
 func (t *Ticket) Validate() error {
 
 	if t.Title == "" {
@@ -73,6 +77,7 @@ func (t *Ticket) Validate() error {
 	return nil
 }
 
+// SaveTicket : description
 func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 	var err error
 	err = db.Debug().Model(&Ticket{}).Create(&t).Error
@@ -88,6 +93,7 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 	return t, nil
 }
 
+// FindAllTickets : description
 func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 	var err error
 	tickets := []Ticket{}
@@ -106,6 +112,7 @@ func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 	return &tickets, nil
 }
 
+// FindTicketByID : description
 func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 	var err error
 	err = db.Debug().Model(&Ticket{}).Where("id = ?", tid).Take(&t).Error
@@ -121,6 +128,7 @@ func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 	return t, nil
 }
 
+// UpdateATicket : description
 func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 
 	var err error

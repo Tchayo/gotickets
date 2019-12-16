@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Login : description
 func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -44,6 +45,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// SignIn : description
 func (server *Server) SignIn(email, password string) (string, error) {
 
 	var err error

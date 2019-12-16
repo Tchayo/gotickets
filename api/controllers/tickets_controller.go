@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CreateTicket : description
 func (server *Server) CreateTicket(w http.ResponseWriter, r *http.Request) {
 
 	uid, err := auth.ExtractTokenID(r)
@@ -59,6 +60,7 @@ func (server *Server) CreateTicket(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusCreated, ticketCreated)
 }
 
+// GetTickets : description
 func (server *Server) GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	ticket := models.Ticket{}
@@ -72,6 +74,7 @@ func (server *Server) GetTickets(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, tickets)
 }
 
+// GetTicket : description
 func (server *Server) GetTicket(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
@@ -92,6 +95,7 @@ func (server *Server) GetTicket(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, ticketReceived)
 }
 
+// UpdateTicket : description
 func (server *Server) UpdateTicket(w http.ResponseWriter, r *http.Request) {
 
 	// check if auth token is valid and get the user id from it

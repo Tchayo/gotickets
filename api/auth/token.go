@@ -13,15 +13,17 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func CreateToken(user_id uint32) (string, error) {
+// CreateToken : description
+func CreateToken(userid uint32) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
-	claims["user_id"] = user_id
+	claims["user_id"] = userid
 	claims["exp"] = time.Now().Add(time.Hour * 1).Unix() //Token expires after 1 hour
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("API_SECRET")))
 }
 
+// TokenValid : description
 func TokenValid(r *http.Request) error {
 	tokenString := ExtractToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -39,6 +41,7 @@ func TokenValid(r *http.Request) error {
 	return nil
 }
 
+// ExtractToken : description
 func ExtractToken(r *http.Request) string {
 	keys := r.URL.Query()
 	token := keys.Get("token")
@@ -52,6 +55,7 @@ func ExtractToken(r *http.Request) string {
 	return ""
 }
 
+// ExtractTokenID : description
 func ExtractTokenID(r *http.Request) (uint32, error) {
 
 	tokenString := ExtractToken(r)
@@ -75,7 +79,7 @@ func ExtractTokenID(r *http.Request) (uint32, error) {
 	return 0, nil
 }
 
-//Pretty display the claims nicely in the terminal
+// Pretty : display the claims nicely in the terminal
 func Pretty(data interface{}) {
 	b, err := json.MarshalIndent(data, "", " ")
 	if err != nil {
