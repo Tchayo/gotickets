@@ -32,8 +32,8 @@ type Ticket struct {
 	Addresss      string  `json:"address"`
 	Lat           float64 `json:"lat"`
 	Lng           float64 `json:"lng"`
-	Held          bool    `json:"held"`
-	Resolved      bool    `json:"resolved"`
+	Held          bool    `gorm:"default:false" json:"held"`
+	Resolved      bool    `gorm:"default:false" json:"resolved"`
 }
 
 func HashTID(tid uint) string {
@@ -47,7 +47,10 @@ func HashTID(tid uint) string {
 }
 
 func (t *Ticket) Prepare() {
-	t.TicketID = HashTID(t.ID)
+
+	if t.TicketID == "" {
+		t.TicketID = HashTID(t.ID)
+	}
 	t.Title = html.EscapeString(strings.TrimSpace(t.Title))
 	t.Message = html.EscapeString(strings.TrimSpace(t.Message))
 	t.Author = User{}
@@ -94,7 +97,7 @@ func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 	}
 	if len(tickets) > 0 {
 		for i := range tickets {
-			err := db.Debug().Model(&User{}).Where("id = ?", tickets[i].UserID).Take(&tickets[i].Author).Error
+			err := db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", tickets[i].UserID).Take(&tickets[i].Author).Error
 			if err != nil {
 				return &[]Ticket{}, err
 			}
@@ -110,7 +113,7 @@ func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 		return &Ticket{}, err
 	}
 	if t.ID != 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", t.UserID).Take(&t.Author).Error
+		err = db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", t.UserID).Take(&t.Author).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
@@ -118,16 +121,37 @@ func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 	return t, nil
 }
 
-func (t *Ticket) CloseATicket(db *gorm.DB) (*Ticket, error) {
+func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 
 	var err error
 
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{CloserID: t.CloserID, Justification: t.Justification, Resolved: true}).Error
+	err = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{
+		CloserID:      t.CloserID,
+		AssigneeID:    t.AssigneeID,
+		HolderID:      t.HolderID,
+		Justification: t.Justification,
+		Held:          t.Held,
+		Resolved:      t.Resolved,
+	}).Error
 	if err != nil {
 		return &Ticket{}, err
 	}
-	if t.ID != 0 {
+	if t.CloserID != 0 {
 		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Closer).Error
+		if err != nil {
+			return &Ticket{}, err
+		}
+	}
+
+	if t.AssigneeID != 0 {
+		err = db.Debug().Model(&User{}).Where("id = ?", t.AssigneeID).Take(&t.Assignee).Error
+		if err != nil {
+			return &Ticket{}, err
+		}
+	}
+
+	if t.HolderID != 0 {
+		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Holder).Error
 		if err != nil {
 			return &Ticket{}, err
 		}

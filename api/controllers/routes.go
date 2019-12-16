@@ -20,7 +20,7 @@ func (s *Server) initializeRoutes() {
 	//Tickets routes
 	s.Router.HandleFunc("/tickets", middlewares.SetMiddlewareJSON(s.CreateTicket)).Methods("POST")
 	s.Router.HandleFunc("/tickets", middlewares.SetMiddlewareJSON(s.GetTickets)).Methods("GET")
-	s.Router.HandleFunc("/tickets/{id}", middlewares.SetMiddlewareJSON(s.GetTicket)).Methods("GET")
+	s.Router.HandleFunc("/tickets/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetTicket))).Methods("GET")
 	s.Router.HandleFunc("/tickets/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateTicket))).Methods("PUT")
 
 }

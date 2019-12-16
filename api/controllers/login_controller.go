@@ -37,7 +37,11 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusUnprocessableEntity, formattedError)
 		return
 	}
-	responses.JSON(w, http.StatusOK, token)
+	responses.JSON(w, http.StatusOK, struct {
+		Token string `json:"token"`
+	}{
+		Token: token,
+	})
 }
 
 func (server *Server) SignIn(email, password string) (string, error) {

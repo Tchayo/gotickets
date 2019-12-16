@@ -17,6 +17,12 @@ import (
 
 func (server *Server) CreateTicket(w http.ResponseWriter, r *http.Request) {
 
+	uid, err := auth.ExtractTokenID(r)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
@@ -34,12 +40,6 @@ func (server *Server) CreateTicket(w http.ResponseWriter, r *http.Request) {
 	err = ticket.Validate()
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
-		return
-	}
-
-	uid, err := auth.ExtractTokenID(r)
-	if err != nil {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
 	}
 
@@ -94,6 +94,13 @@ func (server *Server) GetTicket(w http.ResponseWriter, r *http.Request) {
 
 func (server *Server) UpdateTicket(w http.ResponseWriter, r *http.Request) {
 
+	// check if auth token is valid and get the user id from it
+	// uid, err := auth.ExtractTokenID(r)
+	// if err != nil {
+	// 	responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+	// 	return
+	// }
+
 	vars := mux.Vars(r)
 
 	// check if ticket id is valid
@@ -102,13 +109,6 @@ func (server *Server) UpdateTicket(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
 	}
-
-	// check if auth token is valid and get the user id from it
-	// uid, err := auth.ExtractTokenID(r)
-	// if err != nil {
-	// 	responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-	// 	return
-	// }
 
 	// check if the ticket exists
 	ticket := models.Ticket{}
@@ -146,7 +146,7 @@ func (server *Server) UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	// process necessary userIDs in accoradance to update
 	// to be done later
 
-	ticketUpdated, err := ticketUpdate.CloseATicket(server.DB)
+	ticketUpdated, err := ticketUpdate.UpdateATicket(server.DB)
 
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
