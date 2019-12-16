@@ -1,22 +1,22 @@
 package models
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"errors"
 	"html"
 	"log"
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
-	"github.com/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID uint32 `gorm:"primary_key;auto_increment" json:"id"`
-	Email string `gorm:"size:140;not null;unique" json:"email"`
-	Password string `gorm:"size:140;not null" json:"password"`
+	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	Email     string    `gorm:"size:140;not null;unique" json:"email"`
+	Password  string    `gorm:"size:140;not null" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -84,13 +84,13 @@ func (u *User) Validate(action string) error {
 
 		return nil
 	}
-	
+
 }
 
 func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 
 	var err error
-	err = db.Debug().Create($u).Error
+	err = db.Debug().Create(&u).Error
 	if err != nil {
 		return &User{}, err
 	}
@@ -128,9 +128,9 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 		log.Fatal(err)
 	}
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
-		map[string]interface{} {
-			"password": u.Password,
-			"email": u.Email,
+		map[string]interface{}{
+			"password":   u.Password,
+			"email":      u.Email,
 			"updated_at": time.Now(),
 		},
 	)
@@ -143,7 +143,7 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	if err != nil {
 		return &User{}, err
 	}
-	return u, nill
+	return u, nil
 }
 
 func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
@@ -154,5 +154,5 @@ func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 		return 0, db.Error
 	}
 	return db.RowsAffected, nil
-	
+
 }
