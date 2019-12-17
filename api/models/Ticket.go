@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/sendmail"
 	"github.com/dongri/phonenumber"
 	"github.com/jinzhu/gorm"
 	"github.com/speps/go-hashids"
@@ -126,6 +127,15 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 		if suberr != nil {
 			return &Ticket{}, suberr
 		}
+
+		if authormail := t.Author.Email; authormail != "" {
+			sender := sendmail.NewSender()
+			m := sendmail.NewMessage("Ticket Created", fmt.Sprintf("Ticket ID %s created! Ticket title: %s. Created: %s", t.TicketID, t.Title, t.CreatedAt))
+			m.To = []string{authormail}
+			// m.AttachFile("/path/to/file")
+			fmt.Println(sender.Send(m))
+		}
+
 	}
 	return t, nil
 }
