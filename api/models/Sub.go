@@ -68,7 +68,7 @@ func (sb *Sub) FindAllSubs(db *gorm.DB) (*[]Sub, error) {
 	}
 	if len(subs) > 0 {
 		for i := range subs {
-			err := db.Debug().Model(&User{}).Where("id = ?", subs[i].CategoryID).Take(&subs[i].Category).Error
+			err := db.Debug().Model(&Category{}).Where("id = ?", subs[i].CategoryID).Take(&subs[i].Category).Error
 			if err != nil {
 				return &[]Sub{}, err
 			}

@@ -74,7 +74,7 @@ func (pr *Priority) FindAllPriorities(db *gorm.DB) (*[]Priority, error) {
 	}
 	if len(priorities) > 0 {
 		for i := range priorities {
-			err := db.Debug().Model(&User{}).Where("id = ?", priorities[i].TeamID).Take(&priorities[i].Team).Error
+			err := db.Debug().Model(&Team{}).Where("id = ?", priorities[i].TeamID).Take(&priorities[i].Team).Error
 			if err != nil {
 				return &[]Priority{}, err
 			}

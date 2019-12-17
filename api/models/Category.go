@@ -68,7 +68,7 @@ func (ct *Category) FindAllCategories(db *gorm.DB) (*[]Category, error) {
 	}
 	if len(categories) > 0 {
 		for i := range categories {
-			err := db.Debug().Model(&User{}).Where("id = ?", categories[i].TeamID).Take(&categories[i].Team).Error
+			err := db.Debug().Model(&Team{}).Where("id = ?", categories[i].TeamID).Take(&categories[i].Team).Error
 			if err != nil {
 				return &[]Category{}, err
 			}

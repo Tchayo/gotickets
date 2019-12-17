@@ -150,7 +150,7 @@ func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 			// 	fmt.Println(caterr)
 			// }
 
-			suberr = db.Debug().Model(&Sub{}).Where("id = ?", t.SubCategoryID).Take(&t.SubCategory).Error
+			suberr = db.Debug().Model(&Sub{}).Where("id = ?", tickets[i].SubCategoryID).Take(&tickets[i].SubCategory).Error
 			if suberr != nil {
 				fmt.Println(suberr)
 			}
