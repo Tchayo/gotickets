@@ -46,6 +46,11 @@ func (pr *Priority) Validate() error {
 // SavePriority : create new priority
 func (pr *Priority) SavePriority(db *gorm.DB) (*Priority, error) {
 	var err error
+
+	if prteam := db.Where("id = ?", pr.TeamID).First(&Team{}); prteam.Error != nil {
+		return &Priority{}, prteam.Error
+	}
+
 	err = db.Debug().Model(&Priority{}).Create(&pr).Error
 	if err != nil {
 		return &Priority{}, err

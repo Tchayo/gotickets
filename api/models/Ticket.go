@@ -15,10 +15,12 @@ import (
 // Ticket : description
 type Ticket struct {
 	gorm.Model
-	TicketID      string  `gorm:"type:varchar(100)" json:"ticket_id"`
-	PriorityID    int32   `json:"priority_id"`
-	StatusID      int32   `json:"status_id"`
-	CategoryID    int32   `json:"category_id"`
+	TicketID   string `gorm:"type:varchar(100)" json:"ticket_id"`
+	PriorityID int32  `json:"priority_id"`
+	StatusID   int32  `json:"status_id"`
+	// Category      Category `json:"category"`
+	// CategoryID    int32    `json:"category_id"`
+	SubCategory   Sub     `json:"sub_category"`
 	SubCategoryID int32   `json:"sub_category_id"`
 	Author        User    `json:"author"`
 	UserID        uint32  `json:"user_id"`
@@ -59,6 +61,8 @@ func (t *Ticket) Prepare() {
 	t.Title = html.EscapeString(strings.TrimSpace(t.Title))
 	t.Message = html.EscapeString(strings.TrimSpace(t.Message))
 	t.Author = User{}
+	// t.Category = Category{}
+	t.SubCategory = Sub{}
 }
 
 // Validate : description
@@ -76,12 +80,24 @@ func (t *Ticket) Validate() error {
 	if t.UserID < 1 {
 		return errors.New("Required Author")
 	}
+	if t.SubCategoryID < 1 {
+		return errors.New("Required Sub-category")
+	}
 	return nil
 }
 
 // SaveTicket : description
 func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
-	var err, uperr error
+	var err, updaterr, suberr error
+
+	if tusr := db.Where("id = ?", t.UserID).First(&User{}); tusr.Error != nil {
+		return &Ticket{}, tusr.Error
+	}
+
+	if tsub := db.Where("id = ?", t.SubCategoryID).First(&Sub{}); tsub.Error != nil {
+		return &Ticket{}, tsub.Error
+	}
+
 	err = db.Debug().Model(&Ticket{}).Create(&t).Error
 	if err != nil {
 		return &Ticket{}, err
@@ -89,10 +105,10 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 	if t.ID != 0 {
 		if t.TicketID == "" {
 			newHash := HashTID(t.ID)
-			uperr = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{TicketID: newHash}).Error
+			updaterr = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{TicketID: newHash}).Error
 
-			if uperr != nil {
-				fmt.Println(uperr)
+			if updaterr != nil {
+				fmt.Println(updaterr)
 			}
 		}
 
@@ -100,13 +116,23 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 		if err != nil {
 			return &Ticket{}, err
 		}
+
+		// caterr = db.Debug().Model(&Category{}).Where("id = ?", t.CategoryID).Take(&t.Category).Error
+		// if caterr != nil {
+		// 	fmt.Println(caterr)
+		// }
+
+		suberr = db.Debug().Model(&Sub{}).Where("id = ?", t.SubCategoryID).Take(&t.SubCategory).Error
+		if suberr != nil {
+			return &Ticket{}, suberr
+		}
 	}
 	return t, nil
 }
 
 // FindAllTickets : description
 func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
-	var err error
+	var err, suberr error
 	tickets := []Ticket{}
 	err = db.Debug().Model(&Ticket{}).Limit(100).Find(&tickets).Error
 	if err != nil {
@@ -118,6 +144,16 @@ func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 			if err != nil {
 				return &[]Ticket{}, err
 			}
+
+			// caterr = db.Debug().Model(&Category{}).Where("id = ?", t.CategoryID).Take(&t.Category).Error
+			// if caterr != nil {
+			// 	fmt.Println(caterr)
+			// }
+
+			suberr = db.Debug().Model(&Sub{}).Where("id = ?", t.SubCategoryID).Take(&t.SubCategory).Error
+			if suberr != nil {
+				fmt.Println(suberr)
+			}
 		}
 	}
 	return &tickets, nil
@@ -125,7 +161,7 @@ func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 
 // FindTicketByID : description
 func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
-	var err error
+	var err, suberr error
 	err = db.Debug().Model(&Ticket{}).Where("id = ?", tid).Take(&t).Error
 	if err != nil {
 		return &Ticket{}, err
@@ -134,6 +170,16 @@ func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 		err = db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", t.UserID).Take(&t.Author).Error
 		if err != nil {
 			return &Ticket{}, err
+		}
+
+		// caterr = db.Debug().Model(&Category{}).Where("id = ?", t.CategoryID).Take(&t.Category).Error
+		// if caterr != nil {
+		// 	fmt.Println(caterr)
+		// }
+
+		suberr = db.Debug().Model(&Sub{}).Where("id = ?", t.SubCategoryID).Take(&t.SubCategory).Error
+		if suberr != nil {
+			fmt.Println(suberr)
 		}
 	}
 	return t, nil

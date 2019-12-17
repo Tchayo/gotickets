@@ -40,6 +40,11 @@ func (sb *Sub) Validate() error {
 // SaveSub : create new priority
 func (sb *Sub) SaveSub(db *gorm.DB) (*Sub, error) {
 	var err error
+
+	if categ := db.Where("id = ?", sb.CategoryID).First(&Team{}); categ.Error != nil {
+		return &Sub{}, categ.Error
+	}
+
 	err = db.Debug().Model(&Sub{}).Create(&sb).Error
 	if err != nil {
 		return &Sub{}, err

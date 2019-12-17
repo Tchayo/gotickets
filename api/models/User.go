@@ -101,6 +101,8 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 	if err != nil {
 		return &User{}, err
 	}
+	// hide user password
+	u.Password = ""
 	return u, nil
 }
 
