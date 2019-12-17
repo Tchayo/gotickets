@@ -30,4 +30,32 @@ func (s *Server) initializeRoutes() {
 	s.Router.HandleFunc("/teams/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateTeam))).Methods("PUT")
 	s.Router.HandleFunc("/teams/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteTeam)).Methods("DELETE")
 
+	//Priorities routes
+	s.Router.HandleFunc("/priorities", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.CreatePriority))).Methods("POST")
+	s.Router.HandleFunc("/priorities", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetPriorities))).Methods("GET")
+	s.Router.HandleFunc("/priorities/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetPriority))).Methods("GET")
+	s.Router.HandleFunc("/priorities/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdatePriority))).Methods("PUT")
+	s.Router.HandleFunc("/priorities/{id}", middlewares.SetMiddlewareAuthentication(s.DeletePriority)).Methods("DELETE")
+
+	//Statuses routes
+	s.Router.HandleFunc("/statuses", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.CreateStatus))).Methods("POST")
+	s.Router.HandleFunc("/statuses", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetStatuses))).Methods("GET")
+	s.Router.HandleFunc("/statuses/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetStatus))).Methods("GET")
+	s.Router.HandleFunc("/statuses/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateStatus))).Methods("PUT")
+	s.Router.HandleFunc("/statuses/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteStatus)).Methods("DELETE")
+
+	//Categories routes
+	s.Router.HandleFunc("/categories", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.CreateCategory))).Methods("POST")
+	s.Router.HandleFunc("/categories", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetCategories))).Methods("GET")
+	s.Router.HandleFunc("/categories/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetCategory))).Methods("GET")
+	s.Router.HandleFunc("/categories/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateCategory))).Methods("PUT")
+	s.Router.HandleFunc("/categories/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteCategory)).Methods("DELETE")
+
+	//Subs routes
+	s.Router.HandleFunc("/subs", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.CreateSub))).Methods("POST")
+	s.Router.HandleFunc("/subs", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetSubs))).Methods("GET")
+	s.Router.HandleFunc("/subs/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetSub))).Methods("GET")
+	s.Router.HandleFunc("/subs/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateSub))).Methods("PUT")
+	s.Router.HandleFunc("/subs/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteSub)).Methods("DELETE")
+
 }
