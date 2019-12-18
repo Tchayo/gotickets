@@ -68,6 +68,11 @@ func (u *User) Validate(action string) error {
 		}
 
 		return nil
+	case "reteam":
+		if u.TeamID < 1 {
+			return errors.New("Required Team")
+		}
+		return nil
 	case "login":
 		if u.Password == "" {
 			return errors.New("Required Password")
@@ -113,7 +118,7 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 	var err error
 	users := []User{}
-	err = db.Debug().Model(&User{}).Select("id, email, created_at, updated_at").Limit(100).Find(&users).Error
+	err = db.Debug().Preload("Team").Limit(100).Find(&users).Error
 	if err != nil {
 		return &[]User{}, err
 	}
@@ -123,7 +128,7 @@ func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 // FindUserByID : description
 func (u *User) FindUserByID(db *gorm.DB, uid uint32) (*User, error) {
 	var err error
-	err = db.Debug().Model(User{}).Select("id, Email, created_at, updated_at").Where("id = ?", uid).Take(&u).Error
+	err = db.Debug().Model(User{}).Where("id = ?", uid).Take(&u).Error
 	if err != nil {
 		return &User{}, err
 	}
@@ -154,7 +159,31 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	}
 
 	// Display updated user
-	err = db.Debug().Model(&User{}).Select("id, Email, created_at, updated_at").Where("id = ?", uid).Take(&u).Error
+	err = db.Debug().Preload("Team").Where("id = ?", uid).Find(&u).Error
+	if err != nil {
+		return &User{}, err
+	}
+	return u, nil
+}
+
+// UpdateUserTeam : description
+func (u *User) UpdateUserTeam(db *gorm.DB, uid uint32) (*User, error) {
+
+	// To hash pass
+	var err error
+
+	db = db.Debug().Model(&User{}).Where("id = ?", uid).Updates(
+		User{
+			TeamID: u.TeamID,
+		},
+	)
+
+	if db.Error != nil {
+		return &User{}, db.Error
+	}
+
+	// Display updated user
+	err = db.Debug().Preload("Team").Where("id = ?", uid).Find(&u).Error
 	if err != nil {
 		return &User{}, err
 	}

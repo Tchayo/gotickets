@@ -122,6 +122,40 @@ func (server *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, updatedUser)
 }
 
+// UpdateUserTeam : description
+func (server *Server) UpdateUserTeam(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	uid, err := strconv.ParseUint(vars["id"], 10, 32)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+	user := models.User{}
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+	err = user.Validate("reteam")
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+	updatedUserTeam, err := user.UpdateUserTeam(server.DB, uint32(uid))
+	if err != nil {
+		formattedError := formaterror.FormatError(err.Error())
+		responses.ERROR(w, http.StatusInternalServerError, formattedError)
+		return
+	}
+	responses.JSON(w, http.StatusOK, updatedUserTeam)
+}
+
 // DeleteUser : description
 func (server *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
