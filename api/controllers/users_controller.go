@@ -29,7 +29,7 @@ func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.Prepare()
-	err = user.Validate("")
+	err = user.Validate("new")
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
