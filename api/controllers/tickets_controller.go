@@ -38,7 +38,7 @@ func (server *Server) CreateTicket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ticket.Prepare()
-	err = ticket.Validate()
+	err = ticket.Validate("new")
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
@@ -138,7 +138,7 @@ func (server *Server) UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ticketUpdate.Prepare()
-	err = ticketUpdate.Validate()
+	err = ticketUpdate.Validate("update")
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return

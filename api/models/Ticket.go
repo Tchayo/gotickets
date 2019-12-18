@@ -69,24 +69,32 @@ func (t *Ticket) Prepare() {
 }
 
 // Validate : description
-func (t *Ticket) Validate() error {
+func (t *Ticket) Validate(action string) error {
 
-	if t.Title == "" {
-		return errors.New("Required Title")
+	switch strings.ToLower(action) {
+	case "update":
+		if t.Justification == "" {
+			return errors.New("Required Justification")
+		}
+		return nil
+	default:
+		if t.Title == "" {
+			return errors.New("Required Title")
+		}
+		if t.Message == "" {
+			return errors.New("Required Message")
+		}
+		if t.ContactNo == "" {
+			return errors.New("Required Contact No")
+		}
+		if t.UserID < 1 {
+			return errors.New("Required User")
+		}
+		if t.SubCategoryID < 1 {
+			return errors.New("Required Sub-category")
+		}
+		return nil
 	}
-	if t.Message == "" {
-		return errors.New("Required Message")
-	}
-	if t.ContactNo == "" {
-		return errors.New("Required Contact No")
-	}
-	if t.UserID < 1 {
-		return errors.New("Required User")
-	}
-	if t.SubCategoryID < 1 {
-		return errors.New("Required Sub-category")
-	}
-	return nil
 }
 
 // SaveTicket : description
@@ -115,7 +123,7 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 			}
 		}
 
-		err = db.Debug().Where("id = ?", t.ID).Preload("User").Preload("User.Team").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
+		err = db.Debug().Where("id = ?", t.ID).Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
@@ -145,7 +153,7 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 	var err error
 	tickets := []Ticket{}
-	err = db.Debug().Preload("User").Preload("User.Team").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Limit(100).Find(&tickets).Error
+	err = db.Debug().Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Limit(100).Find(&tickets).Error
 	if err != nil {
 		return &[]Ticket{}, err
 	}
@@ -155,7 +163,7 @@ func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
 // FindTicketByID : description
 func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 	var err error
-	err = db.Debug().Where("id = ?", tid).Preload("User").Preload("User.Team").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
+	err = db.Debug().Where("id = ?", tid).Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
 	if err != nil {
 		return &Ticket{}, err
 	}
@@ -166,6 +174,10 @@ func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
 func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 
 	var err error
+
+	if tusr := db.Where("id = ? AND resolved = ?", t.ID, false).First(&Ticket{}); tusr.Error != nil {
+		return &Ticket{}, errors.New("Ticket already resolved, create a new one instead")
+	}
 
 	err = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{
 		CloserID:      t.CloserID,
