@@ -12,7 +12,7 @@ import (
 type Priority struct {
 	gorm.Model
 	TeamID      uint32 `json:"team_id"`
-	Team        Team   `json:"team"`
+	Team        Team   `gorm:"auto_preload" json:"team"`
 	Title       string `json:"title"`
 	Color       string `json:"color"`
 	Description string `json:"description"`
@@ -68,17 +68,9 @@ func (pr *Priority) SavePriority(db *gorm.DB) (*Priority, error) {
 func (pr *Priority) FindAllPriorities(db *gorm.DB) (*[]Priority, error) {
 	var err error
 	priorities := []Priority{}
-	err = db.Debug().Model(&Priority{}).Limit(100).Find(&priorities).Error
+	err = db.Debug().Model(&Priority{}).Preload("Team").Limit(100).Find(&priorities).Error
 	if err != nil {
 		return &[]Priority{}, err
-	}
-	if len(priorities) > 0 {
-		for i := range priorities {
-			err := db.Debug().Model(&Team{}).Where("id = ?", priorities[i].TeamID).Take(&priorities[i].Team).Error
-			if err != nil {
-				return &[]Priority{}, err
-			}
-		}
 	}
 	return &priorities, nil
 }
@@ -86,15 +78,9 @@ func (pr *Priority) FindAllPriorities(db *gorm.DB) (*[]Priority, error) {
 // FindPriorityByID : find priority by priority ID
 func (pr *Priority) FindPriorityByID(db *gorm.DB, prid uint64) (*Priority, error) {
 	var err error
-	err = db.Debug().Model(&Priority{}).Where("id = ?", prid).Take(&pr).Error
+	err = db.Debug().Preload("Team").Where("id = ?", prid).Find(&pr).Error
 	if err != nil {
 		return &Priority{}, err
-	}
-	if pr.ID != 0 {
-		err = db.Debug().Model(&Team{}).Where("id = ?", pr.TeamID).Take(&pr.Team).Error
-		if err != nil {
-			return &Priority{}, err
-		}
 	}
 	return pr, nil
 }
@@ -104,7 +90,7 @@ func (pr *Priority) UpdateAPriority(db *gorm.DB) (*Priority, error) {
 
 	var err error
 
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", pr.ID).Updates(Priority{
+	err = db.Debug().Model(&Priority{}).Where("id = ?", pr.ID).Updates(Priority{
 		TeamID:      pr.TeamID,
 		Title:       pr.Title,
 		Color:       pr.Color,

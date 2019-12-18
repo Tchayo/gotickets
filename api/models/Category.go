@@ -12,7 +12,7 @@ import (
 type Category struct {
 	gorm.Model
 	TeamID      uint32 `json:"team_id"`
-	Team        Team   `json:"team"`
+	Team        Team   `gorm:"auto_preload" json:"team"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
@@ -62,7 +62,7 @@ func (ct *Category) SaveCategory(db *gorm.DB) (*Category, error) {
 func (ct *Category) FindAllCategories(db *gorm.DB) (*[]Category, error) {
 	var err error
 	categories := []Category{}
-	err = db.Debug().Model(&Category{}).Limit(100).Find(&categories).Error
+	err = db.Debug().Preload("Team").Limit(100).Find(&categories).Error
 	if err != nil {
 		return &[]Category{}, err
 	}
@@ -80,15 +80,9 @@ func (ct *Category) FindAllCategories(db *gorm.DB) (*[]Category, error) {
 // FindCategoryByID : find priority by priority ID
 func (ct *Category) FindCategoryByID(db *gorm.DB, cid uint64) (*Category, error) {
 	var err error
-	err = db.Debug().Model(&Category{}).Where("id = ?", cid).Take(&ct).Error
+	err = db.Debug().Where("id = ?", cid).Preload("Team").Find(&ct).Error
 	if err != nil {
 		return &Category{}, err
-	}
-	if ct.ID != 0 {
-		err = db.Debug().Model(&Team{}).Where("id = ?", ct.TeamID).Take(&ct.Team).Error
-		if err != nil {
-			return &Category{}, err
-		}
 	}
 	return ct, nil
 }
@@ -98,7 +92,7 @@ func (ct *Category) UpdateACategory(db *gorm.DB) (*Category, error) {
 
 	var err error
 
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", ct.ID).Updates(Category{
+	err = db.Debug().Model(&Category{}).Where("id = ?", ct.ID).Updates(Category{
 		TeamID:      ct.TeamID,
 		Title:       ct.Title,
 		Description: ct.Description,

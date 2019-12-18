@@ -78,7 +78,7 @@ func (tm *Team) UpdateATeam(db *gorm.DB) (*Team, error) {
 
 	var err error
 
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", tm.ID).Updates(Team{
+	err = db.Debug().Model(&Team{}).Where("id = ?", tm.ID).Updates(Team{
 		Name:    tm.Name,
 		Company: tm.Company,
 		Email:   tm.Email,

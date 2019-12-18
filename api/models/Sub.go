@@ -12,7 +12,7 @@ import (
 type Sub struct {
 	gorm.Model
 	CategoryID  uint32   `json:"category_id"`
-	Category    Category `json:"category"`
+	Category    Category `gorm:"auto_preload" json:"category"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 }
@@ -41,7 +41,7 @@ func (sb *Sub) Validate() error {
 func (sb *Sub) SaveSub(db *gorm.DB) (*Sub, error) {
 	var err error
 
-	if categ := db.Where("id = ?", sb.CategoryID).First(&Team{}); categ.Error != nil {
+	if categ := db.Where("id = ?", sb.CategoryID).First(&Category{}); categ.Error != nil {
 		return &Sub{}, categ.Error
 	}
 
@@ -62,17 +62,9 @@ func (sb *Sub) SaveSub(db *gorm.DB) (*Sub, error) {
 func (sb *Sub) FindAllSubs(db *gorm.DB) (*[]Sub, error) {
 	var err error
 	subs := []Sub{}
-	err = db.Debug().Model(&Sub{}).Limit(100).Find(&subs).Error
+	err = db.Debug().Preload("Category").Preload("Category.Team").Limit(100).Find(&subs).Error
 	if err != nil {
 		return &[]Sub{}, err
-	}
-	if len(subs) > 0 {
-		for i := range subs {
-			err := db.Debug().Model(&Category{}).Where("id = ?", subs[i].CategoryID).Take(&subs[i].Category).Error
-			if err != nil {
-				return &[]Sub{}, err
-			}
-		}
 	}
 	return &subs, nil
 }
@@ -80,15 +72,10 @@ func (sb *Sub) FindAllSubs(db *gorm.DB) (*[]Sub, error) {
 // FindSubByID : find priority by priority ID
 func (sb *Sub) FindSubByID(db *gorm.DB, cid uint64) (*Sub, error) {
 	var err error
-	err = db.Debug().Model(&Sub{}).Where("id = ?", cid).Take(&sb).Error
+	// err = db.Debug().Model(&Sub{}).Where("id = ?", cid).Take(&sb).Error
+	err = db.Debug().Where("id = ?", cid).Preload("Category").Preload("Category.Team").Find(&sb).Error
 	if err != nil {
 		return &Sub{}, err
-	}
-	if sb.ID != 0 {
-		err = db.Debug().Model(&Category{}).Where("id = ?", sb.CategoryID).Take(&sb.Category).Error
-		if err != nil {
-			return &Sub{}, err
-		}
 	}
 	return sb, nil
 }
@@ -98,7 +85,7 @@ func (sb *Sub) UpdateASub(db *gorm.DB) (*Sub, error) {
 
 	var err error
 
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", sb.ID).Updates(Sub{
+	err = db.Debug().Model(&Sub{}).Where("id = ?", sb.ID).Updates(Sub{
 		CategoryID:  sb.CategoryID,
 		Title:       sb.Title,
 		Description: sb.Description,

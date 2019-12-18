@@ -16,6 +16,8 @@ import (
 // User : description
 type User struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	TeamID    uint32    `json:"team_id"`
+	Team      Team      `gorm:"auto_preload" json:"team"`
 	Email     string    `gorm:"size:140;not null;unique" json:"email"`
 	Password  string    `gorm:"size:140;not null" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -45,6 +47,7 @@ func (u *User) BeforeSave() error {
 // Prepare : description
 func (u *User) Prepare() {
 	u.ID = 0
+	u.Team = Team{}
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()

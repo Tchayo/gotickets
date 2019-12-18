@@ -23,15 +23,15 @@ type Ticket struct {
 	StatusID   int32  `json:"status_id"`
 	// Category      Category `json:"category"`
 	// CategoryID    int32    `json:"category_id"`
-	SubCategory   Sub     `json:"sub_category"`
+	SubCategory   Sub     `gorm:"auto_preload" json:"sub_category"`
 	SubCategoryID int32   `json:"sub_category_id"`
-	Author        User    `json:"author"`
+	User          User    `gorm:"auto_preload"  json:"user"`
 	UserID        uint32  `json:"user_id"`
-	Holder        User    `json:"holder"`
+	Holder        User    `gorm:"auto_preload" json:"holder"`
 	HolderID      uint32  `json:"holder_id"`
-	Closer        User    `json:"closer"`
+	Closer        User    `gorm:"auto_preload" json:"closer"`
 	CloserID      uint32  `json:"closer_id"`
-	Assignee      User    `json:"assignee"`
+	Assignee      User    `gorm:"auto_preload" json:"assignee"`
 	AssigneeID    uint32  `json:"assignee_id"`
 	ContactNo     string  `json:"contact_no"`
 	Title         string  `json:"title"`
@@ -63,7 +63,7 @@ func (t *Ticket) Prepare() {
 	}
 	t.Title = html.EscapeString(strings.TrimSpace(t.Title))
 	t.Message = html.EscapeString(strings.TrimSpace(t.Message))
-	t.Author = User{}
+	t.User = User{}
 	// t.Category = Category{}
 	t.SubCategory = Sub{}
 }
@@ -81,7 +81,7 @@ func (t *Ticket) Validate() error {
 		return errors.New("Required Contact No")
 	}
 	if t.UserID < 1 {
-		return errors.New("Required Author")
+		return errors.New("Required User")
 	}
 	if t.SubCategoryID < 1 {
 		return errors.New("Required Sub-category")
@@ -91,7 +91,7 @@ func (t *Ticket) Validate() error {
 
 // SaveTicket : description
 func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
-	var err, updaterr, suberr error
+	var err, updaterr error
 
 	if tusr := db.Where("id = ?", t.UserID).First(&User{}); tusr.Error != nil {
 		return &Ticket{}, tusr.Error
@@ -115,26 +115,17 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 			}
 		}
 
-		err = db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", t.UserID).Take(&t.Author).Error
+		err = db.Debug().Where("id = ?", t.ID).Preload("User").Preload("User.Team").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
 
-		// caterr = db.Debug().Model(&Category{}).Where("id = ?", t.CategoryID).Take(&t.Category).Error
-		// if caterr != nil {
-		// 	fmt.Println(caterr)
-		// }
-
-		suberr = db.Debug().Model(&Sub{}).Where("id = ?", t.SubCategoryID).Take(&t.SubCategory).Error
-		if suberr != nil {
-			return &Ticket{}, suberr
-		}
-
-		if authormail := t.Author.Email; authormail != "" {
+		// send mail to user --- later modified to team mail
+		if usermail := t.User.Email; usermail != "" {
 			formattedDate := formatdate.FormatDate(t.CreatedAt, "RFCN")
-			mailUser := t.Author.Email
+			mailUser := t.User.Email
 
-			m := sendmail.Mail{ToAddr: authormail,
+			m := sendmail.Mail{ToAddr: usermail,
 				FromName: "Ticketing System",
 				FromAddr: "felix.achayo@adtel.co.ke",
 				Subject:  "Ticket Created",
@@ -152,55 +143,21 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 
 // FindAllTickets : description
 func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
-	var err, suberr error
+	var err error
 	tickets := []Ticket{}
-	err = db.Debug().Model(&Ticket{}).Limit(100).Find(&tickets).Error
+	err = db.Debug().Preload("User").Preload("User.Team").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Limit(100).Find(&tickets).Error
 	if err != nil {
 		return &[]Ticket{}, err
-	}
-	if len(tickets) > 0 {
-		for i := range tickets {
-			err := db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", tickets[i].UserID).Take(&tickets[i].Author).Error
-			if err != nil {
-				return &[]Ticket{}, err
-			}
-
-			// caterr = db.Debug().Model(&Category{}).Where("id = ?", t.CategoryID).Take(&t.Category).Error
-			// if caterr != nil {
-			// 	fmt.Println(caterr)
-			// }
-
-			suberr = db.Debug().Model(&Sub{}).Where("id = ?", tickets[i].SubCategoryID).Take(&tickets[i].SubCategory).Error
-			if suberr != nil {
-				fmt.Println(suberr)
-			}
-		}
 	}
 	return &tickets, nil
 }
 
 // FindTicketByID : description
 func (t *Ticket) FindTicketByID(db *gorm.DB, tid uint64) (*Ticket, error) {
-	var err, suberr error
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", tid).Take(&t).Error
+	var err error
+	err = db.Debug().Where("id = ?", tid).Preload("User").Preload("User.Team").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
 	if err != nil {
 		return &Ticket{}, err
-	}
-	if t.ID != 0 {
-		err = db.Debug().Model(&User{}).Select("ID, Email").Where("id = ?", t.UserID).Take(&t.Author).Error
-		if err != nil {
-			return &Ticket{}, err
-		}
-
-		// caterr = db.Debug().Model(&Category{}).Where("id = ?", t.CategoryID).Take(&t.Category).Error
-		// if caterr != nil {
-		// 	fmt.Println(caterr)
-		// }
-
-		suberr = db.Debug().Model(&Sub{}).Where("id = ?", t.SubCategoryID).Take(&t.SubCategory).Error
-		if suberr != nil {
-			fmt.Println(suberr)
-		}
 	}
 	return t, nil
 }
@@ -222,21 +179,21 @@ func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 		return &Ticket{}, err
 	}
 
-	if t.CloserID != 0 {
+	if t.CloserID > 0 {
 		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Closer).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
 	}
 
-	if t.AssigneeID != 0 {
+	if t.AssigneeID > 0 {
 		err = db.Debug().Model(&User{}).Where("id = ?", t.AssigneeID).Take(&t.Assignee).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
 	}
 
-	if t.HolderID != 0 {
+	if t.HolderID > 0 {
 		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Holder).Error
 		if err != nil {
 			return &Ticket{}, err

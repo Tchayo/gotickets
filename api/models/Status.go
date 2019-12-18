@@ -76,7 +76,7 @@ func (st *Status) UpdateAStatus(db *gorm.DB) (*Status, error) {
 
 	var err error
 
-	err = db.Debug().Model(&Ticket{}).Where("id = ?", st.ID).Updates(Status{
+	err = db.Debug().Model(&Status{}).Where("id = ?", st.ID).Updates(Status{
 		Title:       st.Title,
 		Color:       st.Color,
 		Description: st.Description,
