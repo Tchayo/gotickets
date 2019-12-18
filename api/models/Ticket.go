@@ -179,6 +179,8 @@ func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 		return &Ticket{}, errors.New("Ticket already resolved, create a new one instead")
 	}
 
+	assigneeOld := t.Assignee.Email
+
 	err = db.Debug().Model(&Ticket{}).Where("id = ?", t.ID).Updates(Ticket{
 		CloserID:      t.CloserID,
 		AssigneeID:    t.AssigneeID,
@@ -191,25 +193,67 @@ func (t *Ticket) UpdateATicket(db *gorm.DB) (*Ticket, error) {
 		return &Ticket{}, err
 	}
 
-	if t.CloserID > 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Closer).Error
-		if err != nil {
-			return &Ticket{}, err
-		}
+	err = db.Debug().Where("id = ?", t.ID).Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
+	if err != nil {
+		return &Ticket{}, err
 	}
 
-	if t.AssigneeID > 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", t.AssigneeID).Take(&t.Assignee).Error
-		if err != nil {
-			return &Ticket{}, err
+	if t.Resolved == true {
+		// send mail to user --- later modified to team mail
+		if usermail := t.Closer.Email; usermail != "" {
+			formattedDate := formatdate.FormatDate(t.UpdatedAt, "RFC")
+			mailUser := t.Closer.Email
+
+			m := sendmail.Mail{ToAddr: usermail,
+				FromName: "Ticketing System",
+				FromAddr: "felix.achayo@adtel.co.ke",
+				Subject:  "Ticket Closed",
+				Body:     fmt.Sprintf("Ticket subject: %s. \r\n\n%s. \r\n\nClosed @ %s by %s", t.Title, t.Message, formattedDate, mailUser)}
+
+			err := sendmail.Mailer(m)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	}
+
+	if assigneeOld != t.Assignee.Email && t.Assignee.Email != "" {
+		// send mail to user --- later modified to team mail
+		if usermail := t.Assignee.Email; usermail != "" {
+			formattedDate := formatdate.FormatDate(t.UpdatedAt, "RFCN")
+			mailUser := t.Assignee.Email
+
+			m := sendmail.Mail{ToAddr: usermail,
+				FromName: "Ticketing System",
+				FromAddr: "felix.achayo@adtel.co.ke",
+				Subject:  "Ticket assigned to you",
+				Body:     fmt.Sprintf("Ticket subject: %s. \r\n\n%s. \r\n\nCreated @ %s by %s", t.Title, t.Message, formattedDate, mailUser)}
+
+			err := sendmail.Mailer(m)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
 	if t.HolderID > 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", t.CloserID).Take(&t.Holder).Error
-		if err != nil {
-			return &Ticket{}, err
-		}
+		// send mail to user --- later modified to team mail
+		// if usermail := t.Holder.Email; usermail != "" {
+		// 	formattedDate := formatdate.FormatDate(t.CreatedAt, "RFCN")
+		// 	mailUser := t.Holder.Email
+
+		// 	m := sendmail.Mail{ToAddr: usermail,
+		// 		FromName: "Ticketing System",
+		// 		FromAddr: "felix.achayo@adtel.co.ke",
+		// 		Subject:  "Ticket Created",
+		// 		Body:     fmt.Sprintf("Ticket subject: %s. \r\n\n%s. \r\n\nCreated @ %s by %s", t.Title, t.Message, formattedDate, mailUser)}
+
+		// 	err := sendmail.Mailer(m)
+		// 	if err != nil {
+		// 		log.Fatal(err)
+		// 	}
+		// }
 	}
 	return t, nil
 }
