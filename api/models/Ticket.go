@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"log"
 	"os"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/formatdate"
 	"github.com/Tchayo/gotickets/api/utils/sendmail"
 	"github.com/dongri/phonenumber"
 	"github.com/jinzhu/gorm"
@@ -129,11 +131,19 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 		}
 
 		if authormail := t.Author.Email; authormail != "" {
-			sender := sendmail.NewSender()
-			m := sendmail.NewMessage("Ticket Created", fmt.Sprintf("Ticket ID %s created! Ticket title: %s. Created: %s", t.TicketID, t.Title, t.CreatedAt))
-			m.To = []string{authormail}
-			// m.AttachFile("/path/to/file")
-			fmt.Println(sender.Send(m))
+			formattedDate := formatdate.FormatDate(t.CreatedAt, "RFCN")
+			mailUser := t.Author.Email
+
+			m := sendmail.Mail{ToAddr: authormail,
+				FromName: "Ticketing System",
+				FromAddr: "felix.achayo@adtel.co.ke",
+				Subject:  "Ticket Created",
+				Body:     fmt.Sprintf("Ticket subject: %s. \r\n\n%s. \r\n\nCreated @ %s by %s", t.Title, t.Message, formattedDate, mailUser)}
+
+			err := sendmail.Mailer(m)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 	}
