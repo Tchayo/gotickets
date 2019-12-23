@@ -13,7 +13,7 @@ import (
 // Priority : define priority struct
 type Priority struct {
 	gorm.Model
-	TeamID      uint32 `json:"team_id"`
+	TeamID      uint   `json:"team_id"`
 	Team        Team   `gorm:"auto_preload" json:"team"`
 	Title       string `json:"title"`
 	Color       string `json:"color"`

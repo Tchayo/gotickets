@@ -18,7 +18,7 @@ import (
 // User : description
 type User struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	TeamID    uint32    `json:"team_id"`
+	TeamID    uint      `json:"team_id"`
 	Team      Team      `gorm:"auto_preload" json:"team"`
 	Email     string    `gorm:"size:140;not null;unique" json:"email"`
 	Password  string    `gorm:"size:140;not null" json:"password"`
