@@ -5,7 +5,9 @@ import (
 	"html"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/badoux/checkmail"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
 
@@ -53,14 +55,31 @@ func (tm *Team) SaveTeam(db *gorm.DB) (*Team, error) {
 }
 
 // FindAllTeams : get all teams
-func (tm *Team) FindAllTeams(db *gorm.DB) (*[]Team, error) {
-	var err error
+func (tm *Team) FindAllTeams(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	teams := []Team{}
-	err = db.Debug().Model(&Team{}).Limit(100).Find(&teams).Error
-	if err != nil {
-		return &[]Team{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	return &teams, nil
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
+	}
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db,
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &teams)
+
+	return res, nil
+
 }
 
 // FindTeamByID : find team by team ID

@@ -9,7 +9,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/badoux/checkmail"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
 
@@ -115,14 +117,31 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 }
 
 // FindAllUsers : description
-func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
-	var err error
+func (u *User) FindAllUsers(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	users := []User{}
-	err = db.Debug().Preload("Team").Limit(100).Find(&users).Error
-	if err != nil {
-		return &[]User{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	return &users, err
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
+	}
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db.Preload("Team"),
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &users)
+
+	return res, nil
+
 }
 
 // FindUserByID : description

@@ -5,6 +5,8 @@ import (
 	"html"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
 
@@ -59,14 +61,31 @@ func (sb *Sub) SaveSub(db *gorm.DB) (*Sub, error) {
 }
 
 // FindAllSubs : get all subs
-func (sb *Sub) FindAllSubs(db *gorm.DB) (*[]Sub, error) {
-	var err error
+func (sb *Sub) FindAllSubs(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	subs := []Sub{}
-	err = db.Debug().Preload("Category").Preload("Category.Team").Limit(100).Find(&subs).Error
-	if err != nil {
-		return &[]Sub{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	return &subs, nil
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
+	}
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db.Preload("Category").Preload("Category.Team"),
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &subs)
+
+	return res, nil
+
 }
 
 // FindSubByID : find priority by priority ID

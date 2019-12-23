@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
+	github.com/biezhi/gorm-paginator/pagination v0.0.0-20190124091837-7a5c8ed20334
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dongri/phonenumber v0.0.0-20191114083529-37aca6809ea4
 	github.com/gorilla/mux v1.7.3

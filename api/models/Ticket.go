@@ -8,8 +8,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/Tchayo/gotickets/api/utils/formatdate"
 	"github.com/Tchayo/gotickets/api/utils/sendmail"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/dongri/phonenumber"
 	"github.com/jinzhu/gorm"
 	"github.com/speps/go-hashids"
@@ -150,14 +152,31 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 }
 
 // FindAllTickets : description
-func (t *Ticket) FindAllTickets(db *gorm.DB) (*[]Ticket, error) {
-	var err error
+func (t *Ticket) FindAllTickets(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	tickets := []Ticket{}
-	err = db.Debug().Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Limit(100).Find(&tickets).Error
-	if err != nil {
-		return &[]Ticket{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	return &tickets, nil
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
+	}
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db.Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team"),
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &tickets)
+
+	return res, nil
+
 }
 
 // FindTicketByID : description

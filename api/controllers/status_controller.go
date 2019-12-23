@@ -11,6 +11,7 @@ import (
 	"github.com/Tchayo/gotickets/api/auth"
 	"github.com/Tchayo/gotickets/api/models"
 	"github.com/Tchayo/gotickets/api/responses"
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/Tchayo/gotickets/api/utils/formaterror"
 	"github.com/gorilla/mux"
 )
@@ -52,9 +53,28 @@ func (server *Server) CreateStatus(w http.ResponseWriter, r *http.Request) {
 // GetStatuses : description
 func (server *Server) GetStatuses(w http.ResponseWriter, r *http.Request) {
 
-	status := models.Status{}
+	query := r.URL.Query()
 
-	statuses, err := status.FindAllStatuses(server.DB)
+	status := models.Status{}
+	f := filter.Filter{}
+
+	pg, pErr := strconv.Atoi(query.Get("page"))
+	lm, lErr := strconv.Atoi(query.Get("limit"))
+	sch := query.Get("search")
+
+	if pErr != nil {
+		pg = 1
+	}
+
+	if lErr != nil {
+		lm = 10
+	}
+
+	f.Page = pg
+	f.Limit = lm
+	f.Search = sch
+
+	statuses, err := status.FindAllStatuses(server.DB, &f)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return

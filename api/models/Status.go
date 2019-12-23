@@ -5,6 +5,8 @@ import (
 	"html"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
 
@@ -51,14 +53,31 @@ func (st *Status) SaveStatus(db *gorm.DB) (*Status, error) {
 }
 
 // FindAllStatuses : get all statuses
-func (st *Status) FindAllStatuses(db *gorm.DB) (*[]Status, error) {
-	var err error
+func (st *Status) FindAllStatuses(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	statuses := []Status{}
-	err = db.Debug().Model(&Status{}).Limit(100).Find(&statuses).Error
-	if err != nil {
-		return &[]Status{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	return &statuses, nil
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
+	}
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db,
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &statuses)
+
+	return res, nil
+
 }
 
 // FindStatusByID : find priority by priority ID

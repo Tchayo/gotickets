@@ -9,3 +9,4 @@ go get github.com/joho/godotenv
 go get gopkg.in/go-playground/assert.v1
 go get github.com/speps/go-hashids
 go get github.com/dongri/phonenumber
+go get github.com/biezhi/gorm-paginator/pagination

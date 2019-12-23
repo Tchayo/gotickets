@@ -11,6 +11,7 @@ import (
 	"github.com/Tchayo/gotickets/api/auth"
 	"github.com/Tchayo/gotickets/api/models"
 	"github.com/Tchayo/gotickets/api/responses"
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/Tchayo/gotickets/api/utils/formaterror"
 	"github.com/gorilla/mux"
 )
@@ -51,8 +52,27 @@ func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	user := models.User{}
+	query := r.URL.Query()
 
-	users, err := user.FindAllUsers(server.DB)
+	f := filter.Filter{}
+
+	pg, pErr := strconv.Atoi(query.Get("page"))
+	lm, lErr := strconv.Atoi(query.Get("limit"))
+	sch := query.Get("search")
+
+	if pErr != nil {
+		pg = 1
+	}
+
+	if lErr != nil {
+		lm = 10
+	}
+
+	f.Page = pg
+	f.Limit = lm
+	f.Search = sch
+
+	users, err := user.FindAllUsers(server.DB, &f)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return

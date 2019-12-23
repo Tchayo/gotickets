@@ -11,6 +11,7 @@ import (
 	"github.com/Tchayo/gotickets/api/auth"
 	"github.com/Tchayo/gotickets/api/models"
 	"github.com/Tchayo/gotickets/api/responses"
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/Tchayo/gotickets/api/utils/formaterror"
 	"github.com/gorilla/mux"
 )
@@ -53,8 +54,27 @@ func (server *Server) CreateTeam(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetTeams(w http.ResponseWriter, r *http.Request) {
 
 	team := models.Team{}
+	query := r.URL.Query()
 
-	teams, err := team.FindAllTeams(server.DB)
+	f := filter.Filter{}
+
+	pg, pErr := strconv.Atoi(query.Get("page"))
+	lm, lErr := strconv.Atoi(query.Get("limit"))
+	sch := query.Get("search")
+
+	if pErr != nil {
+		pg = 1
+	}
+
+	if lErr != nil {
+		lm = 10
+	}
+
+	f.Page = pg
+	f.Limit = lm
+	f.Search = sch
+
+	teams, err := team.FindAllTeams(server.DB, &f)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return

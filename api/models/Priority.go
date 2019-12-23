@@ -5,6 +5,8 @@ import (
 	"html"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
 
@@ -65,14 +67,31 @@ func (pr *Priority) SavePriority(db *gorm.DB) (*Priority, error) {
 }
 
 // FindAllPriorities : get all priorities
-func (pr *Priority) FindAllPriorities(db *gorm.DB) (*[]Priority, error) {
-	var err error
+func (pr *Priority) FindAllPriorities(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	priorities := []Priority{}
-	err = db.Debug().Model(&Priority{}).Preload("Team").Limit(100).Find(&priorities).Error
-	if err != nil {
-		return &[]Priority{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	return &priorities, nil
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
+	}
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db.Preload("Team"),
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &priorities)
+
+	return res, nil
+
 }
 
 // FindPriorityByID : find priority by priority ID

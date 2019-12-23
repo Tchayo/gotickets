@@ -11,6 +11,7 @@ import (
 	"github.com/Tchayo/gotickets/api/auth"
 	"github.com/Tchayo/gotickets/api/models"
 	"github.com/Tchayo/gotickets/api/responses"
+	"github.com/Tchayo/gotickets/api/utils/filter"
 	"github.com/Tchayo/gotickets/api/utils/formaterror"
 	"github.com/gorilla/mux"
 )
@@ -64,8 +65,27 @@ func (server *Server) CreateTicket(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	ticket := models.Ticket{}
+	query := r.URL.Query()
 
-	tickets, err := ticket.FindAllTickets(server.DB)
+	f := filter.Filter{}
+
+	pg, pErr := strconv.Atoi(query.Get("page"))
+	lm, lErr := strconv.Atoi(query.Get("limit"))
+	sch := query.Get("search")
+
+	if pErr != nil {
+		pg = 1
+	}
+
+	if lErr != nil {
+		lm = 10
+	}
+
+	f.Page = pg
+	f.Limit = lm
+	f.Search = sch
+
+	tickets, err := ticket.FindAllTickets(server.DB, &f)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return

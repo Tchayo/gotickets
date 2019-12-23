@@ -5,6 +5,8 @@ import (
 	"html"
 	"strings"
 
+	"github.com/Tchayo/gotickets/api/utils/filter"
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
 
@@ -59,22 +61,31 @@ func (ct *Category) SaveCategory(db *gorm.DB) (*Category, error) {
 }
 
 // FindAllCategories : get all categories
-func (ct *Category) FindAllCategories(db *gorm.DB) (*[]Category, error) {
-	var err error
+func (ct *Category) FindAllCategories(db *gorm.DB, f *filter.Filter) (*pagination.Paginator, error) {
+
+	var page, limit int
 	categories := []Category{}
-	err = db.Debug().Preload("Team").Limit(100).Find(&categories).Error
-	if err != nil {
-		return &[]Category{}, err
+
+	if f.Page < 1 {
+		page = 1
+	} else {
+		page = f.Page
 	}
-	if len(categories) > 0 {
-		for i := range categories {
-			err := db.Debug().Model(&Team{}).Where("id = ?", categories[i].TeamID).Take(&categories[i].Team).Error
-			if err != nil {
-				return &[]Category{}, err
-			}
-		}
+	if f.Limit == 0 {
+		limit = 10
+	} else {
+		limit = f.Limit
 	}
-	return &categories, nil
+
+	res := pagination.Paging(&pagination.Param{
+		DB:      db.Preload("Team"),
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+	}, &categories)
+
+	return res, nil
+
 }
 
 // FindCategoryByID : find priority by priority ID
