@@ -13,12 +13,14 @@ import (
 // Priority : define priority struct
 type Priority struct {
 	gorm.Model
-	TeamID      uint   `json:"team_id"`
-	Team        Team   `gorm:"auto_preload" json:"team"`
-	Title       string `json:"title"`
-	Color       string `json:"color"`
-	Description string `json:"description"`
-	Fin         bool   `gorm:"default:false" json:"fin"`
+	TeamID         uint   `json:"team_id"`
+	Team           Team   `gorm:"auto_preload" json:"team"`
+	Title          string `json:"title"`
+	TimeoutHours   int    `gorm:"default:0" json:"timeout_hours"`
+	TimeoutMinutes int    `gorm:"default:0" json:"timeout_minutes"`
+	Color          string `json:"color"`
+	Description    string `json:"description"`
+	Fin            bool   `gorm:"default:false" json:"fin"`
 }
 
 // Prepare : prepare priority variables for save
@@ -110,11 +112,13 @@ func (pr *Priority) UpdateAPriority(db *gorm.DB) (*Priority, error) {
 	var err error
 
 	err = db.Debug().Model(&Priority{}).Where("id = ?", pr.ID).Updates(Priority{
-		TeamID:      pr.TeamID,
-		Title:       pr.Title,
-		Color:       pr.Color,
-		Description: pr.Description,
-		Fin:         pr.Fin,
+		TeamID:         pr.TeamID,
+		Title:          pr.Title,
+		TimeoutHours:   pr.TimeoutHours,
+		TimeoutMinutes: pr.TimeoutMinutes,
+		Color:          pr.Color,
+		Description:    pr.Description,
+		Fin:            pr.Fin,
 	}).Error
 	if err != nil {
 		return &Priority{}, err

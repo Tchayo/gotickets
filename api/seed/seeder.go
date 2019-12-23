@@ -26,35 +26,43 @@ var users = []models.User{
 		Password: "PassWord*",
 	},
 	models.User{
-		Email:    "achayo@gmail.com",
+		Email:    "achayof@gmail.com",
 		Password: "PassWord*",
 	},
 }
 
 var priorites = []models.Priority{
 	models.Priority{
-		Title:       "Normal",
-		Color:       "#ccc",
-		Description: "Normal priority",
-		Fin:         false,
+		Title:          "Normal",
+		TimeoutHours:   1,
+		TimeoutMinutes: 0,
+		Color:          "#ccc",
+		Description:    "Normal priority",
+		Fin:            false,
 	},
 	models.Priority{
-		Title:       "Overdue",
-		Color:       "#FFC107",
-		Description: "Overdue priority",
-		Fin:         false,
+		Title:          "Overdue",
+		TimeoutHours:   2,
+		TimeoutMinutes: 0,
+		Color:          "#FFC107",
+		Description:    "Overdue priority",
+		Fin:            false,
 	},
 	models.Priority{
-		Title:       "Critical",
-		Color:       "#E91E63",
-		Description: "Critical priority",
-		Fin:         false,
+		Title:          "Critical",
+		TimeoutHours:   3,
+		TimeoutMinutes: 0,
+		Color:          "#E91E63",
+		Description:    "Critical priority",
+		Fin:            false,
 	},
 	models.Priority{
-		Title:       "Resolved",
-		Color:       "#4CAF50",
-		Description: "Resolved priority",
-		Fin:         true,
+		Title:          "Resolved",
+		TimeoutHours:   0,
+		TimeoutMinutes: 0,
+		Color:          "#4CAF50",
+		Description:    "Resolved priority",
+		Fin:            true,
 	},
 }
 
@@ -132,12 +140,12 @@ var subs = []models.Sub{
 // Load : load migrations
 func Load(db *gorm.DB) {
 
-	err := db.Debug().DropTableIfExists(&models.Category{}, &models.Priority{}, &models.User{}, &models.Team{}, &models.Status{}).Error
+	err := db.Debug().DropTableIfExists(&models.Sub{}, &models.Category{}, &models.Priority{}, &models.User{}, &models.Team{}, &models.Status{}).Error
 	if err != nil {
 		log.Fatalf("cannot drop table: %v", err)
 	}
 
-	err = db.Debug().AutoMigrate(&models.Team{}, &models.User{}, &models.Priority{}, &models.Status{}, &models.Category{}).Error
+	err = db.Debug().AutoMigrate(&models.Team{}, &models.User{}, &models.Priority{}, &models.Status{}, &models.Category{}, &models.Sub{}).Error
 	if err != nil {
 		log.Fatalf("cannot migrate table: %v", err)
 	}
@@ -162,25 +170,29 @@ func Load(db *gorm.DB) {
 		log.Fatalf("attaching foreign key error: %v", err)
 	}
 
+	var teamSelect uint
+
 	for i := range teams {
 		err = db.Debug().Model(&models.Team{}).Create(&teams[i]).Error
 		if err != nil {
 			log.Fatalf("cannot seed teams table: %v", err)
 		}
 		users[i].TeamID = teams[i].ID
+		teamSelect = teams[0].ID
 
 		err = db.Debug().Model(&models.User{}).Create(&users[i]).Error
 		if err != nil {
 			log.Fatalf("cannot seed users table: %v", err)
 		}
 
-		for j := range priorites {
-			priorites[j].TeamID = teams[i].ID
+	}
 
-			err = db.Debug().Model(&models.Priority{}).Create(&priorites[j]).Error
-			if err != nil {
-				log.Fatalf("cannot seed priorities table: %v", err)
-			}
+	for i := range priorites {
+		priorites[i].TeamID = teamSelect
+
+		err = db.Debug().Model(&models.Priority{}).Create(&priorites[i]).Error
+		if err != nil {
+			log.Fatalf("cannot seed priorities table: %v", err)
 		}
 	}
 

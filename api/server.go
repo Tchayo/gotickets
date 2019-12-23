@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/Tchayo/gotickets/api/controllers"
-	"github.com/Tchayo/gotickets/api/seed"
 	"github.com/joho/godotenv"
 )
 
@@ -19,11 +18,16 @@ func Run() {
 	if err != nil {
 		log.Fatalf("Error getting env, not comming through %v", err)
 	} else {
-		fmt.Println("We are getting the env values")
+		fmt.Println("Getting env values")
 	}
 
 	server.Initialize(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
 
-	seed.Load(server.DB)
+	// uncomment to seed sample data
+	// seed.Load(server.DB)
+
+	// test chron function
+	// jobs.UpdateSLA(server.DB)
+
 	server.Run(":8080")
 }
