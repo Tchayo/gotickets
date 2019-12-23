@@ -20,10 +20,10 @@ import (
 // Ticket : description
 type Ticket struct {
 	gorm.Model
-	TicketID   string   `gorm:"type:varchar(100)" json:"ticket_id"`
-	Priority   Priority `gorm:"auto_preload" json:"priority"`
-	PriorityID int32    `json:"priority_id"`
-	StatusID   int32    `json:"status_id"`
+	TicketID string `gorm:"type:varchar(100)" json:"ticket_id"`
+	// Priority   Priority `gorm:"auto_preload" json:"priority"`
+	PriorityID int32 `json:"priority_id"`
+	StatusID   int32 `json:"status_id"`
 	// Category      Category `json:"category"`
 	// CategoryID    int32    `json:"category_id"`
 	SubCategory   Sub     `gorm:"auto_preload" json:"sub_category"`
@@ -67,7 +67,7 @@ func (t *Ticket) Prepare() {
 	t.Title = html.EscapeString(strings.TrimSpace(t.Title))
 	t.Message = html.EscapeString(strings.TrimSpace(t.Message))
 	t.User = User{}
-	t.Priority = Priority{}
+	// t.Priority = Priority{}
 	t.SubCategory = Sub{}
 }
 
@@ -126,7 +126,7 @@ func (t *Ticket) SaveTicket(db *gorm.DB) (*Ticket, error) {
 			}
 		}
 
-		err = db.Debug().Where("id = ?", t.ID).Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("Priority").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
+		err = db.Debug().Where("id = ?", t.ID).Preload("User").Preload("User.Team").Preload("Assignee").Preload("Holder").Preload("Closer").Preload("SubCategory").Preload("SubCategory.Category").Preload("SubCategory.Category.Team").Find(&t).Error
 		if err != nil {
 			return &Ticket{}, err
 		}
