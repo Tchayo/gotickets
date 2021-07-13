@@ -122,7 +122,7 @@ var categories = []models.Category{
 var subs = []models.Sub{
 	models.Sub{
 		CategoryID:  1,
-		Title:       "Mpesa Repost",
+		Title:       "Payment Repost",
 		Description: "Repost related issues",
 	},
 	models.Sub{
@@ -132,8 +132,8 @@ var subs = []models.Sub{
 	},
 	models.Sub{
 		CategoryID:  3,
-		Title:       "Mpesa Reversal",
-		Description: "Mpesa reversal related issues",
+		Title:       "Payment Reversal",
+		Description: "Payment reversal related issues",
 	},
 }
 
