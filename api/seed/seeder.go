@@ -10,23 +10,23 @@ import (
 var teams = []models.Team{
 	models.Team{
 		Name:    "Support",
-		Company: "Adtel",
-		Email:   "felix.achayo@adtel.co.ke",
+		Company: "Sample",
+		Email:   "mail@example.co.ke",
 	},
 	models.Team{
 		Name:    "Finance",
-		Company: "Adtel",
-		Email:   "felix.achayo@adtel.co.ke",
+		Company: "Sample",
+		Email:   "mail@example.co.ke",
 	},
 }
 
 var users = []models.User{
 	models.User{
-		Email:    "felix.achayo@adtel.co.ke",
+		Email:    "user@ticketing.example",
 		Password: "PassWord*",
 	},
 	models.User{
-		Email:    "achayof@gmail.com",
+		Email:    "admin@ticketing.example",
 		Password: "PassWord*",
 	},
 }
